@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Paper DIY Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts for E-Paper Serif & Sans typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom E-Ink Aesthetics & Colors */
+        :root {
+            --epaper-bg: #f4f1ea;
+            --epaper-fg: #111111;
+            --epaper-muted: #555555;
+            --epaper-border: #111111;
+            --epaper-card: #fdfbf7;
+            --epaper-accent: #222222;
+        }
+
+        .dark-epaper {
+            --epaper-bg: #121314;
+            --epaper-fg: #f4f1ea;
+            --epaper-muted: #a0a0a0;
+            --epaper-border: #f4f1ea;
+            --epaper-card: #1c1d1f;
+            --epaper-accent: #e5e0d8;
+        }
+
+        body {
+            background-color: var(--epaper-bg);
+            color: var(--epaper-fg);
+            font-family: 'Newsreader', serif;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .font-mono-epaper {
+            font-family: 'Space Mono', 'Courier Prime', monospace;
+        }
+
+        /* E-Paper Paper Texture SVG Grain Overlay */
+        .epaper-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+        }
+
+        /* Dither effect simulation for graphics */
+        .dither-pattern {
+            background-image: radial-gradient(var(--epaper-fg) 1px, transparent 0);
+            background-size: 4px 4px;
+        }
+
+        /* Crisp sharp e-ink border styles */
+        .epaper-box {
+            background-color: var(--epaper-card);
+            border: 2px solid var(--epaper-border);
+            box-shadow: 3px 3px 0px 0px var(--epaper-border);
+        }
+
+        .epaper-border-b {
+            border-bottom: 2px solid var(--epaper-border);
+        }
+
+        .epaper-border-r {
+            border-right: 2px solid var(--epaper-border);
+        }
+
+        /* E-Ink Refresh Flash Animation */
+        @keyframes epaper-refresh {
+            0% { filter: invert(0); }
+            40% { filter: invert(1); }
+            60% { filter: invert(1); }
+            100% { filter: invert(0); }
+        }
+
+        .refresh-flash {
+            animation: epaper-refresh 0.6s ease-in-out;
+        }
+
+        /* Custom Scrollbar for minimalistic look */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--epaper-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--epaper-fg);
+        }
+    </style>
+</head>
+<body class="min-h-screen epaper-texture flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
+
+    <!-- Top Header Bar -->
+    <header class="epaper-box p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 border-2 border-current rounded-none">
+                <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight font-mono-epaper uppercase">PAPER-OS // DIY-7.5"</h1>
+                <p class="text-xs font-mono-epaper opacity-75">Status: Online | Refresh Rate: 60s | Battery: 94% [⚡]</p>
+            </div>
+        </div>
+
+        <!-- Controls / Screen Toggles -->
+        <div class="flex items-center space-x-2 text-xs font-mono-epaper">
+            <button id="btn-refresh" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>REFRESH</span>
+            </button>
+            <button id="btn-theme" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
+                <i data-lucide="sun-moon" class="w-3.5 h-3.5"></i>
+                <span id="theme-label">DARK MODE</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Grid Dashboard Layout -->
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
+
+        <!-- Column 1: Time, Date & Location Quick Info -->
+        <section class="epaper-box p-5 flex flex-col justify-between space-y-4 md:col-span-1">
+            <div>
+                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-baseline">
+                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">TIME & DATE</span>
+                    <span class="text-xs font-mono-epaper" id="location-name">SEATTLE, WA</span>
+                </div>
+                
+                <!-- Digital Clock -->
+                <div class="my-4 text-center">
+                    <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">
+                        08:42
+                    </div>
+                    <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">
+                        :15 AM
+                    </div>
+                </div>
+
+                <!-- Date display -->
+                <div class="mt-6 pt-4 border-t border-dashed border-current text-center">
+                    <div id="clock-day" class="text-3xl font-serif font-bold uppercase tracking-wider">
+                        MONDAY
+                    </div>
+                    <div id="clock-date" class="text-base font-mono-epaper opacity-90 mt-1">
+                        OCTOBER 24, 2026
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sun Cycle Widget -->
+            <div class="pt-4 border-t-2 border-current">
+                <div class="text-xs font-mono-epaper font-bold uppercase mb-2 flex justify-between">
+                    <span>SUNRISE / SUNSET</span>
+                    <i data-lucide="sun" class="w-4 h-4"></i>
+                </div>
+                <div class="flex justify-between items-center text-sm font-mono-epaper">
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        <span>06:48 AM</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+                        <span>06:12 PM</span>
+                    </div>
+                </div>
+                <!-- Day progress bar -->
+                <div class="w-full bg-transparent border border-current h-2.5 mt-2 p-0.5">
+                    <div id="sun-progress" class="bg-current h-full" style="width: 58%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Column 2: Tide & Coastal Info Widget -->
+        <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
+            <div>
+                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
+                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">COASTAL & TIDE DATA</span>
+                    <i data-lucide="waves" class="w-4 h-4"></i>
+                </div>
+
+                <!-- Current Status -->
+                <div class="flex justify-between items-baseline mb-3">
+                    <div>
+                        <span class="text-xs font-mono-epaper block opacity-75">CURRENT TIDE</span>
+                        <span class="text-2xl font-bold font-mono-epaper" id="tide-current-val">+6.8 FT</span>
+                    </div>
+                    <span class="text-xs font-mono-epaper border border-current px-1.5 py-0.5 font-bold uppercase" id="tide-state">RISING</span>
+                </div>
+
+                <!-- Canvas Dynamic Tide Graph -->
+                <div class="relative w-full h-36 my-2 border border-current p-1 bg-opacity-10">
+                    <canvas id="tideChart" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- High/Low Markers -->
+                <div class="grid grid-cols-2 gap-2 mt-4 text-xs font-mono-epaper">
+                    <div class="border border-current p-2 text-center">
+                        <span class="block opacity-70">HIGH TIDE</span>
+                        <span class="font-bold">11:15 AM (+9.2ft)</span>
+                    </div>
+                    <div class="border border-current p-2 text-center">
+                        <span class="block opacity-70">LOW TIDE</span>
+                        <span class="font-bold">05:40 PM (+1.1ft)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs font-mono-epaper opacity-75 border-t border-dashed border-current pt-2 mt-2 flex justify-between">
+                <span>Water Temp: 54°F</span>
+                <span>Wind: 12 kts NW</span>
+            </div>
+        </section>
+
+        <!-- Column 3: Weather Card -->
+        <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
+            <div>
+                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
+                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">WEATHER FORECAST</span>
+                    <i data-lucide="cloud-sun" class="w-4 h-4"></i>
+                </div>
+
+                <!-- Main Temp Display -->
+                <div class="flex items-center justify-between my-2">
+                    <div>
+                        <div class="text-5xl sm:text-6xl font-bold font-mono-epaper tracking-tight">64°<span class="text-2xl">F</span></div>
+                        <div class="text-base font-serif italic mt-1">Partly Cloudy & Cool</div>
+                    </div>
+                    <div class="p-3 border-2 border-current">
+                        <i data-lucide="cloud-sun" class="w-12 h-12"></i>
+                    </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="grid grid-cols-2 gap-2 my-4 text-xs font-mono-epaper">
+                    <div class="border-l-2 border-current pl-2">
+                        <span class="opacity-75 block">HUMIDITY</span>
+                        <span class="font-bold text-sm">68%</span>
+                    </div>
+                    <div class="border-l-2 border-current pl-2">
+                        <span class="opacity-75 block">WIND SPEED</span>
+                        <span class="font-bold text-sm">9 MPH WNW</span>
+                    </div>
+                    <div class="border-l-2 border-current pl-2">
+                        <span class="opacity-75 block">BAROMETER</span>
+                        <span class="font-bold text-sm">29.92 in</span>
+                    </div>
+                    <div class="border-l-2 border-current pl-2">
+                        <span class="opacity-75 block">UV INDEX</span>
+                        <span class="font-bold text-sm">3 (MODERATE)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-Day Forecast mini bar -->
+            <div class="border-t-2 border-current pt-3">
+                <div class="grid grid-cols-3 gap-2 text-center font-mono-epaper text-xs">
+                    <div class="p-2 border border-current">
+                        <span class="block opacity-75">TUE</span>
+                        <i data-lucide="sun" class="w-4 h-4 mx-auto my-1"></i>
+                        <span class="font-bold">68° / 52°</span>
+                    </div>
+                    <div class="p-2 border border-current">
+                        <span class="block opacity-75">WED</span>
+                        <i data-lucide="cloud-rain" class="w-4 h-4 mx-auto my-1"></i>
+                        <span class="font-bold">59° / 48°</span>
+                    </div>
+                    <div class="p-2 border border-current">
+                        <span class="block opacity-75">THU</span>
+                        <i data-lucide="cloud" class="w-4 h-4 mx-auto my-1"></i>
+                        <span class="font-bold">62° / 50°</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Ticker / News RSS Banner -->
+    <footer class="epaper-box p-3 mt-4 flex items-center justify-between text-xs font-mono-epaper">
+        <div class="flex items-center space-x-3 w-full overflow-hidden">
+            <span class="bg-current px-2 py-0.5 text-xs font-bold uppercase text-white dark-text-black tracking-widest shrink-0" id="badge-news">NEWS TICKER</span>
+            <div class="truncate opacity-90" id="news-headline">
+                LOADING HEADLINES: MIT Breakthrough in Low-Power E-Paper Display Drivers Refreshing Every 24 Hours...
+            </div>
+        </div>
+        <div class="shrink-0 pl-4 border-l border-current hidden sm:block">
+            <span>LAST SYNC: <span id="last-sync-time">JUST NOW</span></span>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Canvas Tide Graph Drawing Logic
+        function drawTideChart() {
+            const canvas = document.getElementById('tideChart');
+            if (!canvas) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+
+            // Get computed styling color for high contrast e-ink feel
+            const computedStyle = getComputedStyle(document.body);
+            const fgColor = computedStyle.getPropertyValue('--epaper-fg').trim() || '#111111';
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw grid lines (minimalist dotted/dashed look)
+            ctx.strokeStyle = fgColor;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+
+            // Draw baseline zero tide line
+            ctx.beginPath();
+            ctx.moveTo(0, height * 0.7);
+            ctx.lineTo(width, height * 0.7);
+            ctx.stroke();
+
+            // Draw Sine Wave for Tide Curve
+            ctx.setLineDash([]);
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            const amplitude = height * 0.35;
+            const frequency = (Math.PI * 2) / (width * 0.8);
+            const centerY = height * 0.45;
+
+            for (let x = 0; x <= width; x++) {
+                const y = centerY + Math.sin(x * frequency - 0.5) * amplitude;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Fill area under curve with a dither pattern / subtle shading
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fillStyle = fgColor;
+            ctx.globalAlpha = 0.12;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            // Current Time Marker Line on Tide Chart
+            const currentX = width * 0.42;
+            const currentY = centerY + Math.sin(currentX * frequency - 0.5) * amplitude;
+
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(currentX, 0);
+            ctx.lineTo(currentX, height);
+            ctx.stroke();
+
+            // Current Tide Point Marker (Filled Circle)
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = fgColor;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // Live Clock & Date Update Logic
+        function updateClock() {
+            const now = new Date();
+
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12;
+            hours = hours ? hours : 12; // convert 0 to 12
+            const hoursStr = String(hours).padStart(2, '0');
+
+            document.getElementById('clock-time').textContent = `${hoursStr}:${minutes}`;
+            document.getElementById('clock-seconds').textContent = `:${seconds} ${ampm}`;
+
+            // Date elements
+        const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+
+        document.getElementById('clock-day').textContent = days[now.getDay()];
+        document.getElementById('clock-date').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+    }
+
+    // Cycle News Headlines Simulation
+    const headlines = [
+        "MIT Breakthrough in Low-Power E-Paper Display Drivers Refreshing Every 24 Hours...",
+        "Local Marine Weather Warning: Small craft advisory in effect until 8 PM tomorrow...",
+        "Solar Activity Peak Expected to Produce Visible Aurora Borealis in Northern Latitudes...",
+        "DIY Smart Home Display Projects See Spike in Popularity with Open-Source Hardware..."
+    ];
+    let headlineIdx = 0;
+
+        function cycleHeadlines() {
+            headlineIdx = (headlineIdx + 1) % headlines.length;
+            const headlineEl = document.getElementById('news-headline');
+            if (headlineEl) {
+                headlineEl.textContent = headlines[headlineIdx];
+            }
+        }
+
+        // E-Paper Screen Refresh Flash Simulation
+        function triggerRefreshFlash() {
+            document.body.classList.add('refresh-flash');
+            setTimeout(() => {
+                document.body.classList.remove('refresh-flash');
+                drawTideChart();
+                const now = new Date();
+                document.getElementById('last-sync-time').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }, 600);
+        }
+
+        // Event Listeners for Buttons & Resizing
+        document.getElementById('btn-refresh').addEventListener('click', triggerRefreshFlash);
+
+        // Dark/Light Theme Toggle (E-Paper Light vs Dark mode)
+        const btnTheme = document.getElementById('btn-theme');
+        const themeLabel = document.getElementById('theme-label');
+
+        btnTheme.addEventListener('click', () => {
+            document.body.classList.toggle('dark-epaper');
+            const isDark = document.body.classList.contains('dark-epaper');
+            themeLabel.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
+            triggerRefreshFlash();
+        });
+
+        // Window load and resize handlers
+        window.addEventListener('load', () => {
+            updateClock();
+            drawTideChart();
+            setInterval(updateClock, 1000);
+            setInterval(cycleHeadlines, 12000);
+            setInterval(triggerRefreshFlash, 60000); // 1-minute auto refresh for e-paper simulation
+        });
+
+        window.addEventListener('resize', () => {
+            drawTideChart();
+        });
+    </script>
+</body>
+</html>
