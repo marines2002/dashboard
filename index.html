@@ -4,17 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Paper DIY Dashboard</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts for E-Paper Serif & Sans typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom E-Ink Aesthetics & Colors */
         :root {
             --epaper-bg: #f4f1ea;
             --epaper-fg: #111111;
@@ -44,18 +40,15 @@
             font-family: 'Space Mono', 'Courier Prime', monospace;
         }
 
-        /* E-Paper Paper Texture SVG Grain Overlay */
         .epaper-texture {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E");
         }
 
-        /* Dither effect simulation for graphics */
         .dither-pattern {
             background-image: radial-gradient(var(--epaper-fg) 1px, transparent 0);
             background-size: 4px 4px;
         }
 
-        /* Crisp sharp e-ink border styles */
         .epaper-box {
             background-color: var(--epaper-card);
             border: 2px solid var(--epaper-border);
@@ -70,7 +63,6 @@
             border-right: 2px solid var(--epaper-border);
         }
 
-        /* E-Ink Refresh Flash Animation */
         @keyframes epaper-refresh {
             0% { filter: invert(0); }
             40% { filter: invert(1); }
@@ -82,7 +74,6 @@
             animation: epaper-refresh 0.6s ease-in-out;
         }
 
-        /* Custom Scrollbar for minimalistic look */
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
@@ -97,7 +88,6 @@
 </head>
 <body class="min-h-screen epaper-texture flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
 
-    <!-- Top Header Bar -->
     <header class="epaper-box p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
             <div class="p-2 border-2 border-current rounded-none">
@@ -109,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Controls / Screen Toggles -->
         <div class="flex items-center space-x-2 text-xs font-mono-epaper">
             <button id="btn-refresh" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
                 <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
@@ -122,39 +111,26 @@
         </div>
     </header>
 
-    <!-- Main Grid Dashboard Layout -->
     <main class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
 
-        <!-- Column 1: Time, Date & Location Quick Info -->
         <section class="epaper-box p-5 flex flex-col justify-between space-y-4 md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-baseline">
                     <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">TIME & DATE</span>
                     <span class="text-xs font-mono-epaper" id="location-name">SEATTLE, WA</span>
                 </div>
-                
-                <!-- Digital Clock -->
+
                 <div class="my-4 text-center">
-                    <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">
-                        08:42
-                    </div>
-                    <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">
-                        :15 AM
-                    </div>
+                    <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">08:42</div>
+                    <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">:15 AM</div>
                 </div>
 
-                <!-- Date display -->
                 <div class="mt-6 pt-4 border-t border-dashed border-current text-center">
-                    <div id="clock-day" class="text-3xl font-serif font-bold uppercase tracking-wider">
-                        MONDAY
-                    </div>
-                    <div id="clock-date" class="text-base font-mono-epaper opacity-90 mt-1">
-                        OCTOBER 24, 2026
-                    </div>
+                    <div id="clock-day" class="text-3xl font-serif font-bold uppercase tracking-wider">MONDAY</div>
+                    <div id="clock-date" class="text-base font-mono-epaper opacity-90 mt-1">OCTOBER 24, 2026</div>
                 </div>
             </div>
 
-            <!-- Sun Cycle Widget -->
             <div class="pt-4 border-t-2 border-current">
                 <div class="text-xs font-mono-epaper font-bold uppercase mb-2 flex justify-between">
                     <span>SUNRISE / SUNSET</span>
@@ -170,14 +146,12 @@
                         <span>06:12 PM</span>
                     </div>
                 </div>
-                <!-- Day progress bar -->
                 <div class="w-full bg-transparent border border-current h-2.5 mt-2 p-0.5">
                     <div id="sun-progress" class="bg-current h-full" style="width: 58%;"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Column 2: Tide & Coastal Info Widget -->
         <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
@@ -185,7 +159,6 @@
                     <i data-lucide="waves" class="w-4 h-4"></i>
                 </div>
 
-                <!-- Current Status -->
                 <div class="flex justify-between items-baseline mb-3">
                     <div>
                         <span class="text-xs font-mono-epaper block opacity-75">CURRENT TIDE</span>
@@ -194,12 +167,10 @@
                     <span class="text-xs font-mono-epaper border border-current px-1.5 py-0.5 font-bold uppercase" id="tide-state">RISING</span>
                 </div>
 
-                <!-- Canvas Dynamic Tide Graph -->
                 <div class="relative w-full h-36 my-2 border border-current p-1 bg-opacity-10">
                     <canvas id="tideChart" class="w-full h-full block"></canvas>
                 </div>
 
-                <!-- High/Low Markers -->
                 <div class="grid grid-cols-2 gap-2 mt-4 text-xs font-mono-epaper">
                     <div class="border border-current p-2 text-center">
                         <span class="block opacity-70">HIGH TIDE</span>
@@ -218,7 +189,6 @@
             </div>
         </section>
 
-        <!-- Column 3: Weather Card -->
         <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
@@ -226,7 +196,6 @@
                     <i data-lucide="cloud-sun" class="w-4 h-4"></i>
                 </div>
 
-                <!-- Main Temp Display -->
                 <div class="flex items-center justify-between my-2">
                     <div>
                         <div class="text-5xl sm:text-6xl font-bold font-mono-epaper tracking-tight">64°<span class="text-2xl">F</span></div>
@@ -237,7 +206,6 @@
                     </div>
                 </div>
 
-                <!-- Details Grid -->
                 <div class="grid grid-cols-2 gap-2 my-4 text-xs font-mono-epaper">
                     <div class="border-l-2 border-current pl-2">
                         <span class="opacity-75 block">HUMIDITY</span>
@@ -258,7 +226,6 @@
                 </div>
             </div>
 
-            <!-- 3-Day Forecast mini bar -->
             <div class="border-t-2 border-current pt-3">
                 <div class="grid grid-cols-3 gap-2 text-center font-mono-epaper text-xs">
                     <div class="p-2 border border-current">
@@ -282,7 +249,6 @@
 
     </main>
 
-    <!-- Bottom Ticker / News RSS Banner -->
     <footer class="epaper-box p-3 mt-4 flex items-center justify-between text-xs font-mono-epaper">
         <div class="flex items-center space-x-3 w-full overflow-hidden">
             <span class="bg-current px-2 py-0.5 text-xs font-bold uppercase text-white dark-text-black tracking-widest shrink-0" id="badge-news">NEWS TICKER</span>
@@ -295,65 +261,180 @@
         </div>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script>
-        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Canvas Tide Graph Drawing Logic
-        function drawTideChart() {
+        const CONFIG = {
+            locationName: 'LOOE, UK',
+            latitude: 50.3578,
+            longitude: -4.4542,
+            useMetric: true
+        };
+
+        document.getElementById('location-name').textContent = CONFIG.locationName;
+        document.getElementById('coord-display')?.textContent = `${CONFIG.latitude}°N, ${Math.abs(CONFIG.longitude)}°W`;
+
+        let marineHourlyData = [];
+
+        async function fetchDashboardData() {
+            try {
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,weather_code&daily=sunrise,sunset&timezone=auto`;
+                const weatherRes = await fetch(weatherUrl);
+                const weatherData = await weatherRes.json();
+
+                const tempC = weatherData.current.temperature_2m;
+                const temp = CONFIG.useMetric ? Math.round(tempC) : Math.round((tempC * 9 / 5) + 32);
+                document.getElementById('weather-temp').innerHTML = `${temp}°<span class="text-2xl">${CONFIG.useMetric ? 'C' : 'F'}</span>`;
+                document.getElementById('weather-humidity').textContent = `${weatherData.current.relative_humidity_2m}%`;
+                document.getElementById('weather-wind').textContent = `${Math.round(weatherData.current.wind_speed_10m)} MPH`;
+                document.getElementById('weather-pressure').textContent = `${Math.round(weatherData.current.pressure_msl)} hPa`;
+                document.getElementById('weather-desc').textContent = getWeatherDescription(weatherData.current.weather_code);
+
+                if (weatherData.daily && weatherData.daily.sunrise && weatherData.daily.sunset) {
+                    document.getElementById('sun-rise').textContent = new Date(weatherData.daily.sunrise[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('sun-set').textContent = new Date(weatherData.daily.sunset[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+
+                const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=sea_level_height_msl,sea_surface_temperature,wave_height&hourly=sea_level_height_msl&timezone=auto`;
+                const marineRes = await fetch(marineUrl);
+                const marineData = await marineRes.json();
+
+                if (marineData.current) {
+                    const currentMsl = marineData.current.sea_level_height_msl ?? 0;
+                    document.getElementById('current-sea-level').textContent = `${currentMsl >= 0 ? '+' : ''}${currentMsl.toFixed(2)} m`;
+
+                    if (marineData.current.sea_surface_temperature != null) {
+                        document.getElementById('water-temp').textContent = `Water Temp: ${marineData.current.sea_surface_temperature.toFixed(1)}°C`;
+                    }
+                    if (marineData.current.wave_height != null) {
+                        document.getElementById('wave-height').textContent = `Swell: ${marineData.current.wave_height.toFixed(1)} m`;
+                    }
+                }
+
+                if (marineData.hourly && marineData.hourly.sea_level_height_msl) {
+                    marineHourlyData = marineData.hourly.sea_level_height_msl;
+                    calculateTideExtremes(marineData.hourly.time, marineHourlyData);
+                }
+
+                drawTideChart(marineHourlyData);
+
+            } catch (err) {
+                console.error('API Fetch Error:', err);
+                document.getElementById('news-headline').textContent = 'Warning: Failed to reach live marine endpoints. Utilizing fallback models.';
+            }
+        }
+
+        function getWeatherDescription(code) {
+            const codes = {
+                0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+                45: 'Foggy', 51: 'Light Drizzle', 61: 'Rain Showers', 71: 'Snowfall', 95: 'Thunderstorm'
+            };
+            return codes[code] || 'Fair Conditions';
+        }
+
+        function calculateTideExtremes(times, levels) {
+            if (!Array.isArray(times) || !Array.isArray(levels) || !times.length || !levels.length || times.length !== levels.length) {
+                return;
+            }
+
+            const now = Date.now();
+            const currentIndex = times.findIndex(t => new Date(t).getTime() >= now);
+            const startIndex = currentIndex >= 0 ? currentIndex : 0;
+
+            let nextHigh = null;
+            let nextLow = null;
+
+            for (let i = Math.max(1, startIndex); i < levels.length - 1; i++) {
+                const previous = levels[i - 1];
+                const current = levels[i];
+                const next = levels[i + 1];
+                const time = new Date(times[i]).getTime();
+
+                if (!Number.isFinite(time) || time <= now) continue;
+
+                if (nextHigh === null && current >= previous && current > next) {
+                    nextHigh = { time, level: current };
+                }
+
+                if (nextLow === null && current <= previous && current < next) {
+                    nextLow = { time, level: current };
+                }
+
+                if (nextHigh && nextLow) break;
+            }
+
+            const formatTide = ({ time, level }) => {
+                const formattedTime = new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `${formattedTime} (${level >= 0 ? '+' : ''}${level.toFixed(1)}m)`;
+            };
+
+            document.getElementById('next-high').textContent = nextHigh ? formatTide(nextHigh) : 'No peak';
+            document.getElementById('next-low').textContent = nextLow ? formatTide(nextLow) : 'No low';
+
+            if (startIndex > 0) {
+                const diff = levels[startIndex] - levels[startIndex - 1];
+                document.getElementById('tide-trend').textContent = diff > 0 ? 'RISING' : 'FALLING';
+            }
+        }
+
+        function drawTideChart(levels) {
             const canvas = document.getElementById('tideChart');
             if (!canvas) return;
 
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
-            
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
 
             const ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             const width = rect.width;
             const height = rect.height;
-
-            // Get computed styling color for high contrast e-ink feel
             const computedStyle = getComputedStyle(document.body);
             const fgColor = computedStyle.getPropertyValue('--epaper-fg').trim() || '#111111';
 
             ctx.clearRect(0, 0, width, height);
 
-            // Draw grid lines (minimalist dotted/dashed look)
             ctx.strokeStyle = fgColor;
             ctx.lineWidth = 1;
             ctx.setLineDash([2, 4]);
-
-            // Draw baseline zero tide line
             ctx.beginPath();
             ctx.moveTo(0, height * 0.7);
             ctx.lineTo(width, height * 0.7);
             ctx.stroke();
 
-            // Draw Sine Wave for Tide Curve
             ctx.setLineDash([]);
             ctx.lineWidth = 2.5;
             ctx.beginPath();
 
-            const amplitude = height * 0.35;
-            const frequency = (Math.PI * 2) / (width * 0.8);
-            const centerY = height * 0.45;
+            if (levels && levels.length > 0) {
+                const nowIdx = Math.max(0, Math.min(levels.length - 1, Math.round(levels.length * 0.5)));
+                const sliceStart = Math.max(0, nowIdx - 12);
+                const sliceEnd = Math.min(levels.length, nowIdx + 18);
+                const slice = levels.slice(sliceStart, sliceEnd);
+                const minVal = Math.min(...slice);
+                const maxVal = Math.max(...slice);
+                const range = (maxVal - minVal) || 1;
 
-            for (let x = 0; x <= width; x++) {
-                const y = centerY + Math.sin(x * frequency - 0.5) * amplitude;
-                if (x === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+                slice.forEach((val, i) => {
+                    const x = (i / Math.max(1, slice.length - 1)) * width;
+                    const y = height - 10 - ((val - minVal) / range) * (height - 20);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+            } else {
+                const amplitude = height * 0.35;
+                const frequency = (Math.PI * 2) / (width * 0.8);
+                const centerY = height * 0.45;
+                for (let x = 0; x <= width; x++) {
+                    const y = centerY + Math.sin(x * frequency - 0.5) * amplitude;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
                 }
             }
             ctx.stroke();
 
-            // Fill area under curve with a dither pattern / subtle shading
             ctx.lineTo(width, height);
             ctx.lineTo(0, height);
             ctx.closePath();
@@ -362,57 +443,49 @@
             ctx.fill();
             ctx.globalAlpha = 1.0;
 
-            // Current Time Marker Line on Tide Chart
             const currentX = width * 0.42;
-            const currentY = centerY + Math.sin(currentX * frequency - 0.5) * amplitude;
-
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
             ctx.moveTo(currentX, 0);
             ctx.lineTo(currentX, height);
             ctx.stroke();
 
-            // Current Tide Point Marker (Filled Circle)
             ctx.setLineDash([]);
             ctx.beginPath();
-            ctx.arc(currentX, currentY, 4.5, 0, Math.PI * 2);
+            ctx.arc(currentX, height * 0.5, 4.5, 0, Math.PI * 2);
             ctx.fillStyle = fgColor;
             ctx.fill();
             ctx.stroke();
         }
 
-        // Live Clock & Date Update Logic
         function updateClock() {
             const now = new Date();
-
             let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
 
             hours = hours % 12;
-            hours = hours ? hours : 12; // convert 0 to 12
+            hours = hours ? hours : 12;
             const hoursStr = String(hours).padStart(2, '0');
 
             document.getElementById('clock-time').textContent = `${hoursStr}:${minutes}`;
             document.getElementById('clock-seconds').textContent = `:${seconds} ${ampm}`;
 
-            // Date elements
-        const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-        const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+            const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 
-        document.getElementById('clock-day').textContent = days[now.getDay()];
-        document.getElementById('clock-date').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-    }
+            document.getElementById('clock-day').textContent = days[now.getDay()];
+            document.getElementById('clock-date').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+        }
 
-    // Cycle News Headlines Simulation
-    const headlines = [
-        "MIT Breakthrough in Low-Power E-Paper Display Drivers Refreshing Every 24 Hours...",
-        "Local Marine Weather Warning: Small craft advisory in effect until 8 PM tomorrow...",
-        "Solar Activity Peak Expected to Produce Visible Aurora Borealis in Northern Latitudes...",
-        "DIY Smart Home Display Projects See Spike in Popularity with Open-Source Hardware..."
-    ];
-    let headlineIdx = 0;
+        const headlines = [
+            'MIT Breakthrough in Low-Power E-Paper Display Drivers Refreshing Every 24 Hours...',
+            'Local Marine Weather Warning: Small craft advisory in effect until 8 PM tomorrow...',
+            'Solar Activity Peak Expected to Produce Visible Aurora Borealis in Northern Latitudes...',
+            'DIY Smart Home Display Projects See Spike in Popularity with Open-Source Hardware...'
+        ];
+        let headlineIdx = 0;
 
         function cycleHeadlines() {
             headlineIdx = (headlineIdx + 1) % headlines.length;
@@ -422,21 +495,18 @@
             }
         }
 
-        // E-Paper Screen Refresh Flash Simulation
         function triggerRefreshFlash() {
             document.body.classList.add('refresh-flash');
             setTimeout(() => {
                 document.body.classList.remove('refresh-flash');
-                drawTideChart();
+                drawTideChart(marineHourlyData);
                 const now = new Date();
                 document.getElementById('last-sync-time').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }, 600);
         }
 
-        // Event Listeners for Buttons & Resizing
         document.getElementById('btn-refresh').addEventListener('click', triggerRefreshFlash);
 
-        // Dark/Light Theme Toggle (E-Paper Light vs Dark mode)
         const btnTheme = document.getElementById('btn-theme');
         const themeLabel = document.getElementById('theme-label');
 
@@ -447,17 +517,17 @@
             triggerRefreshFlash();
         });
 
-        // Window load and resize handlers
         window.addEventListener('load', () => {
             updateClock();
             drawTideChart();
+            fetchDashboardData();
             setInterval(updateClock, 1000);
             setInterval(cycleHeadlines, 12000);
-            setInterval(triggerRefreshFlash, 60000); // 1-minute auto refresh for e-paper simulation
+            setInterval(triggerRefreshFlash, 60000);
         });
 
         window.addEventListener('resize', () => {
-            drawTideChart();
+            drawTideChart(marineHourlyData);
         });
     </script>
 </body>
