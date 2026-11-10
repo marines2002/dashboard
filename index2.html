@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Paper DIY Dashboard - Looe UK</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --epaper-bg: #f4f1ea;
+            --epaper-fg: #111111;
+            --epaper-muted: #555555;
+            --epaper-border: #111111;
+            --epaper-card: #fdfbf7;
+            --epaper-accent: #222222;
+        }
+
+        .dark-epaper {
+            --epaper-bg: #121314;
+            --epaper-fg: #f4f1ea;
+            --epaper-muted: #a0a0a0;
+            --epaper-border: #f4f1ea;
+            --epaper-card: #1c1d1f;
+            --epaper-accent: #e5e0d8;
+        }
+
+        body {
+            background-color: var(--epaper-bg);
+            color: var(--epaper-fg);
+            font-family: 'Newsreader', serif;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .font-mono-epaper {
+            font-family: 'Space Mono', 'Courier Prime', monospace;
+        }
+
+        .epaper-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+        }
+
+        .epaper-box {
+            background-color: var(--epaper-card);
+            border: 2px solid var(--epaper-border);
+            box-shadow: 3px 3px 0px 0px var(--epaper-border);
+        }
+
+        @keyframes epaper-refresh {
+            0% { filter: invert(0); }
+            40% { filter: invert(1); }
+            60% { filter: invert(1); }
+            100% { filter: invert(0); }
+        }
+
+        .refresh-flash {
+            animation: epaper-refresh 0.6s ease-in-out;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--epaper-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--epaper-fg); }
+    </style>
+</head>
+<body class="min-h-screen epaper-texture flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
+
+    <!-- Top Header Bar -->
+    <header class="epaper-box p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 border-2 border-current rounded-none">
+                <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight font-mono-epaper uppercase">PAPER-OS // GH-PAGES</h1>
+                <p class="text-xs font-mono-epaper opacity-75">Status: Live API | Auto-Refresh: 15m</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs font-mono-epaper">
+            <button id="btn-refresh" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>REFRESH</span>
+            </button>
+            <button id="btn-theme" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
+                <i data-lucide="sun-moon" class="w-3.5 h-3.5"></i>
+                <span id="theme-label">DARK MODE</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Grid Dashboard Layout -->
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
+
+        <!-- Column 1: Time, Date & Location Quick Info -->
+        <section class="epaper-box p-5 flex flex-col justify-between space-y-4 md:col-span-1">
+            <div>
+                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-baseline">
+                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">TIME & DATE</span>
+                    <span class="text-xs font-mono-epaper font-bold" id="location-name">LOOE, UK</span>
+                </div>
+                
+                <div class="my-4 text-center">
+                    <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">00:00</div>
+                    <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">:00 AM</div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-dashed border-current text-center">
+                    <div id="clock-day" class="text-3xl font-serif font-bold uppercase tracking-wider">LOADING</div>
+                    <div id="clock-date" class="text-base font-mono-epaper opacity-90 mt-1">--- --, ----</div>
+                </div>
+            </div>
+
+            <!-- Sun Cycle Widget -->
+            <div class="pt-4 border-t-2 border-current">
