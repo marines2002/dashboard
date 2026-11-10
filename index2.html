@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Paper DIY Dashboard - Looe UK</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -44,7 +41,7 @@
         }
 
         .epaper-texture {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E");
         }
 
         .epaper-box {
@@ -71,7 +68,6 @@
 </head>
 <body class="min-h-screen epaper-texture flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
 
-    <!-- Top Header Bar -->
     <header class="epaper-box p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
             <div class="p-2 border-2 border-current rounded-none">
@@ -95,17 +91,15 @@
         </div>
     </header>
 
-    <!-- Main Grid Dashboard Layout -->
     <main class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
 
-        <!-- Column 1: Time, Date & Location Quick Info -->
         <section class="epaper-box p-5 flex flex-col justify-between space-y-4 md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-baseline">
                     <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">TIME & DATE</span>
                     <span class="text-xs font-mono-epaper font-bold" id="location-name">LOOE, UK</span>
                 </div>
-                
+
                 <div class="my-4 text-center">
                     <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">00:00</div>
                     <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">:00 AM</div>
@@ -117,7 +111,6 @@
                 </div>
             </div>
 
-            <!-- Sun Cycle Widget -->
             <div class="pt-4 border-t-2 border-current">
                 <div class="text-xs font-mono-epaper font-bold uppercase mb-2 flex justify-between">
                     <span>SUNRISE / SUNSET</span>
@@ -139,7 +132,6 @@
             </div>
         </section>
 
-        <!-- Column 2: Tide & Coastal Info Widget -->
         <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
@@ -177,7 +169,6 @@
             </div>
         </section>
 
-        <!-- Column 3: Weather Card -->
         <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
             <div>
                 <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
@@ -215,7 +206,6 @@
                 </div>
             </div>
 
-            <!-- Mini 3-Day Forecast bar -->
             <div class="border-t-2 border-current pt-3">
                 <div class="grid grid-cols-3 gap-2 text-center font-mono-epaper text-xs" id="forecast-container">
                     <div class="p-2 border border-current"><span class="block opacity-75">--</span><span class="font-bold">--°</span></div>
@@ -227,7 +217,6 @@
 
     </main>
 
-    <!-- Bottom Ticker -->
     <footer class="epaper-box p-3 mt-4 flex items-center justify-between text-xs font-mono-epaper">
         <div class="flex items-center space-x-3 w-full overflow-hidden">
             <span class="bg-current px-2 py-0.5 text-xs font-bold uppercase text-white tracking-widest shrink-0">STATUS</span>
@@ -240,7 +229,6 @@
         </div>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script>
         lucide.createIcons();
 
@@ -258,8 +246,7 @@
 
         async function fetchDashboardData() {
             try {
-                // 1. Fetch Standard Weather & Sun Data
-                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}¤t=temperature_2m,relative_humidity_2m,pressure_msl,weather_code,wind_speed_10m&daily=sunrise,sunset&timezone=auto`;
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,weather_code&daily=sunrise,sunset&timezone=auto`;
                 const weatherRes = await fetch(weatherUrl);
                 const weatherData = await weatherRes.json();
 
@@ -272,19 +259,18 @@
                 document.getElementById('weather-desc').textContent = getWeatherDescription(weatherData.current.weather_code);
 
                 if (weatherData.daily && weatherData.daily.sunrise && weatherData.daily.sunset) {
-                    document.getElementById('sun-rise').textContent = new Date(weatherData.daily.sunrise[0]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    document.getElementById('sun-set').textContent = new Date(weatherData.daily.sunset[0]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    document.getElementById('sun-rise').textContent = new Date(weatherData.daily.sunrise[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('sun-set').textContent = new Date(weatherData.daily.sunset[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 }
 
-                // 2. Fetch Marine & Tide Data (Open-Meteo Marine API)
-                const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}¤t=sea_level_height_msl,sea_surface_temperature,wave_height&hourly=sea_level_height_msl&timezone=auto`;
+                const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=sea_level_height_msl,sea_surface_temperature,wave_height&hourly=sea_level_height_msl&timezone=auto`;
                 const marineRes = await fetch(marineUrl);
                 const marineData = await marineRes.json();
 
                 if (marineData.current) {
                     const currentMsl = marineData.current.sea_level_height_msl ?? 0;
                     document.getElementById('current-sea-level').textContent = `${currentMsl >= 0 ? '+' : ''}${currentMsl.toFixed(2)} m`;
-                    
+
                     if (marineData.current.sea_surface_temperature != null) {
                         document.getElementById('water-temp').textContent = `Water Temp: ${marineData.current.sea_surface_temperature.toFixed(1)}°C`;
                     }
@@ -301,48 +287,61 @@
                 drawTideChart(marineHourlyData);
 
             } catch (err) {
-                console.error("API Fetch Error:", err);
-                document.getElementById('news-headline').textContent = "Warning: Failed to reach live marine endpoints. Utilizing fallback models.";
+                console.error('API Fetch Error:', err);
+                document.getElementById('news-headline').textContent = 'Warning: Failed to reach live marine endpoints. Utilizing fallback models.';
             }
         }
 
         function getWeatherDescription(code) {
             const codes = {
-                0: "Clear Sky", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
-                45: "Foggy", 51: "Light Drizzle", 61: "Rain Showers", 71: "Snowfall", 95: "Thunderstorm"
+                0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+                45: 'Foggy', 51: 'Light Drizzle', 61: 'Rain Showers', 71: 'Snowfall', 95: 'Thunderstorm'
             };
-            return codes[code] || "Fair Conditions";
+            return codes[code] || 'Fair Conditions';
         }
 
         function calculateTideExtremes(times, levels) {
-            if (!levels || levels.length === 0) return;
-            const now = new Date();
-            const currentHourIdx = times.findIndex(t => new Date(t) >= now);
-            const idx = currentHourIdx !== -1 ? currentHourIdx : 0;
-
-            // Look ahead 12 hours to locate local high/low peaks from hourly array
-            let peakHigh = -999, peakLow = 999;
-            let highTime = "---", lowTime = "---";
-
-            const windowEnd = Math.min(idx + 12, levels.length);
-            for (let i = idx; i < windowEnd; i++) {
-                if (levels[i] > peakHigh) {
-                    peakHigh = levels[i];
-                    highTime = new Date(times[i]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                }
-                if (levels[i] < peakLow) {
-                    peakLow = levels[i];
-                    lowTime = new Date(times[i]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                }
+            if (!Array.isArray(times) || !Array.isArray(levels) || !times.length || !levels.length || times.length !== levels.length) {
+                return;
             }
 
-            document.getElementById('next-high').textContent = `${highTime} (${peakHigh >= 0 ? '+' : ''}${peakHigh.toFixed(1)}m)`;
-            document.getElementById('next-low').textContent = `${lowTime} (${peakLow >= 0 ? '+' : ''}${peakLow.toFixed(1)}m)`;
-            
-            // Determine trend
-            if (idx > 0) {
-                const diff = levels[idx] - levels[idx - 1];
-                document.getElementById('tide-trend').textContent = diff > 0 ? "RISING" : "FALLING";
+            const now = Date.now();
+            const currentIndex = times.findIndex(t => new Date(t).getTime() >= now);
+            const startIndex = currentIndex >= 0 ? currentIndex : 0;
+
+            let nextHigh = null;
+            let nextLow = null;
+
+            for (let i = Math.max(1, startIndex); i < levels.length - 1; i++) {
+                const previous = levels[i - 1];
+                const current = levels[i];
+                const next = levels[i + 1];
+                const time = new Date(times[i]).getTime();
+
+                if (!Number.isFinite(time) || time <= now) continue;
+
+                if (nextHigh === null && current >= previous && current > next) {
+                    nextHigh = { time, level: current };
+                }
+
+                if (nextLow === null && current <= previous && current < next) {
+                    nextLow = { time, level: current };
+                }
+
+                if (nextHigh && nextLow) break;
+            }
+
+            const formatTide = ({ time, level }) => {
+                const formattedTime = new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `${formattedTime} (${level >= 0 ? '+' : ''}${level.toFixed(1)}m)`;
+            };
+
+            document.getElementById('next-high').textContent = nextHigh ? formatTide(nextHigh) : 'No peak';
+            document.getElementById('next-low').textContent = nextLow ? formatTide(nextLow) : 'No low';
+
+            if (startIndex > 0) {
+                const diff = levels[startIndex] - levels[startIndex - 1];
+                document.getElementById('tide-trend').textContent = diff > 0 ? 'RISING' : 'FALLING';
             }
         }
 
@@ -356,7 +355,7 @@
             canvas.height = rect.height * dpr;
 
             const ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             const width = rect.width;
             const height = rect.height;
@@ -377,16 +376,17 @@
             ctx.lineWidth = 2.5;
             ctx.beginPath();
 
-            // Plot actual marine hourly data points if available, otherwise draw baseline curve
             if (levels && levels.length > 0) {
-                const nowIdx = 12; // center around current time window
-                const slice = levels.slice(Math.max(0, nowIdx - 6), nowIdx + 18);
+                const nowIdx = Math.max(0, Math.min(levels.length - 1, Math.round(levels.length * 0.5)));
+                const sliceStart = Math.max(0, nowIdx - 12);
+                const sliceEnd = Math.min(levels.length, nowIdx + 18);
+                const slice = levels.slice(sliceStart, sliceEnd);
                 const minVal = Math.min(...slice);
                 const maxVal = Math.max(...slice);
                 const range = (maxVal - minVal) || 1;
 
                 slice.forEach((val, i) => {
-                    const x = (i / (slice.length - 1)) * width;
+                    const x = (i / Math.max(1, slice.length - 1)) * width;
                     const y = height - 10 - ((val - minVal) / range) * (height - 20);
                     if (i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
@@ -411,7 +411,6 @@
             ctx.fill();
             ctx.globalAlpha = 1.0;
 
-            // Current time marker line
             const currentX = width * 0.42;
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
