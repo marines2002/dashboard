@@ -1,477 +1,413 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Paper DIY Dashboard - Looe UK</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Looe tides today</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f4f1ea;
+    --surface-1:      #fdfbf7;
+    --border:         #111111;
+    --grid:           rgba(17, 17, 17, 0.14);
+    --axis:           #111111;
+    --text-primary:   #111111;
+    --text-secondary: #4a4a4a;
+    --text-muted:     #555555;
+    --series-1:       #111111;
+    --series-1-fill:  rgba(17, 17, 17, 0.10);
+    --now:            #111111;
+    --mono: "Space Mono", "Courier New", monospace;
+    --serif: "Newsreader", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:           #121314;
+      --surface-1:      #1c1d1f;
+      --border:         #f4f1ea;
+      --grid:           rgba(244, 241, 234, 0.16);
+      --axis:           #f4f1ea;
+      --text-primary:   #f4f1ea;
+      --text-secondary: #b5b3ad;
+      --text-muted:     #a0a0a0;
+      --series-1:       #f4f1ea;
+      --series-1-fill:  rgba(244, 241, 234, 0.12);
+      --now:            #f4f1ea;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background-color: var(--page); color: var(--text-primary);
+    font: 16px/1.45 var(--serif);
+    /* paper grain */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E");
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 32px; }
 
-    <style>
-        :root {
-            --epaper-bg: #f4f1ea;
-            --epaper-fg: #111111;
-            --epaper-muted: #555555;
-            --epaper-border: #111111;
-            --epaper-card: #fdfbf7;
-            --epaper-accent: #222222;
-        }
+  /* boxed panels with hard offset shadow */
+  .box, .card, .tile, .masthead, footer {
+    background: var(--surface-1); border: 2px solid var(--border);
+    box-shadow: 3px 3px 0 0 var(--border); border-radius: 0;
+  }
+  .masthead { padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font: 700 30px/1.1 var(--serif); margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+  .sub { font: 12px var(--mono); color: var(--text-secondary); margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stamp { font: 700 12px var(--mono); border: 2px solid var(--border); padding: 4px 8px; text-transform: uppercase; letter-spacing: 0.08em; }
 
-        .dark-epaper {
-            --epaper-bg: #121314;
-            --epaper-fg: #f4f1ea;
-            --epaper-muted: #a0a0a0;
-            --epaper-border: #f4f1ea;
-            --epaper-card: #1c1d1f;
-            --epaper-accent: #e5e0d8;
-        }
+  .card { padding: 16px 18px; margin-bottom: 16px; }
+  .panel-head {
+    display: flex; flex-wrap: wrap; gap: 2px 12px; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--border); padding-bottom: 6px; margin-bottom: 12px;
+    font: 700 12px var(--mono); text-transform: uppercase; letter-spacing: 0.15em;
+  }
+  .panel-head span:last-child { font-weight: 400; letter-spacing: 0.05em; color: var(--text-secondary); }
 
-        body {
-            background-color: var(--epaper-bg);
-            color: var(--epaper-fg);
-            font-family: 'Newsreader', serif;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
+  .hero-body { display: flex; flex-wrap: wrap; gap: 8px 0; }
+  .hero-body > div { flex: 1 1 200px; padding: 0 16px; border-left: 2px solid var(--border); }
+  .hero-body > div:first-child { border-left: 0; padding-left: 0; }
+  .hero .big { font: 700 44px/1.05 var(--mono); letter-spacing: -0.03em; margin: 2px 0; }
+  .hero .label { font: 11px var(--mono); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+  .hero .detail { font: 13px var(--mono); color: var(--text-secondary); padding-top: 6px; margin-top: 6px; border-top: 1px dashed var(--border); }
 
-        .font-mono-epaper {
-            font-family: 'Space Mono', 'Courier Prime', monospace;
-        }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .tile { padding: 12px 14px; }
+  .tile .kind { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; display: flex; gap: 6px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .tile .kind svg { flex: none; }
+  .tile .time { font: 700 30px/1.2 var(--mono); letter-spacing: -0.02em; margin-top: 6px; }
+  .tile .height { font: 13px var(--mono); color: var(--text-secondary); }
+  .tile.past { border-style: dashed; box-shadow: none; }
+  .tile.past .time, .tile.past .height { color: var(--text-muted); }
+  .tile.past .time { text-decoration: line-through; text-decoration-thickness: 2px; }
+  .tile .tag { margin-left: auto; font-weight: 400; font-size: 10px; color: var(--text-muted); }
 
-        .epaper-texture {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E");
-        }
+  .chart-wrap { position: relative; border: 1px solid var(--border); padding: 8px 4px 0; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart-wrap svg:focus { outline: none; }
+  .chart-wrap svg:focus-visible { outline: 2px dashed var(--border); outline-offset: 4px; }
+  .tick { fill: var(--text-secondary); font: 11px var(--mono); }
+  .mark-label { fill: var(--text-primary); font: 700 11px var(--mono); }
+  .now-label { fill: var(--text-primary); font: 700 11px var(--mono); text-transform: uppercase; }
+  .tooltip {
+    position: absolute; pointer-events: none; display: none; white-space: nowrap;
+    background: var(--surface-1); border: 2px solid var(--border); box-shadow: 3px 3px 0 0 var(--border);
+    padding: 5px 9px; font-family: var(--mono);
+  }
+  .tooltip strong { display: block; font-size: 15px; }
+  .tooltip span { color: var(--text-secondary); font-size: 11px; }
 
-        .epaper-box {
-            background-color: var(--epaper-card);
-            border: 2px solid var(--epaper-border);
-            box-shadow: 3px 3px 0px 0px var(--epaper-border);
-        }
-
-        @keyframes epaper-refresh {
-            0% { filter: invert(0); }
-            40% { filter: invert(1); }
-            60% { filter: invert(1); }
-            100% { filter: invert(0); }
-        }
-
-        .refresh-flash {
-            animation: epaper-refresh 0.6s ease-in-out;
-        }
-
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--epaper-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--epaper-fg); }
-    </style>
+  details summary { cursor: pointer; font: 700 12px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; }
+  table { border-collapse: collapse; margin-top: 10px; font: 13px var(--mono); }
+  th, td { text-align: left; padding: 3px 18px 3px 0; border-bottom: 1px dashed var(--grid); }
+  th { font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; border-bottom: 2px solid var(--border); }
+  .cols { columns: 3 220px; }
+  footer { font: 11px var(--mono); color: var(--text-secondary); padding: 8px 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  footer a { color: inherit; }
+  .error { font-family: var(--mono); }
+</style>
 </head>
-<body class="min-h-screen epaper-texture flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
-
-    <header class="epaper-box p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center space-x-3">
-            <div class="p-2 border-2 border-current rounded-none">
-                <i data-lucide="cpu" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h1 class="text-xl sm:text-2xl font-bold tracking-tight font-mono-epaper uppercase">PAPER-OS // GH-PAGES</h1>
-                <p class="text-xs font-mono-epaper opacity-75">Status: Live Marine & Weather API | Auto-Refresh: 15m</p>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-2 text-xs font-mono-epaper">
-            <button id="btn-refresh" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                <span>REFRESH</span>
-            </button>
-            <button id="btn-theme" class="px-3 py-1.5 border-2 border-current hover:bg-current hover:text-white transition flex items-center space-x-1 font-bold">
-                <i data-lucide="sun-moon" class="w-3.5 h-3.5"></i>
-                <span id="theme-label">DARK MODE</span>
-            </button>
-        </div>
-    </header>
-
-    <main class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
-
-        <section class="epaper-box p-5 flex flex-col justify-between space-y-4 md:col-span-1">
-            <div>
-                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-baseline">
-                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">TIME & DATE</span>
-                    <span class="text-xs font-mono-epaper font-bold" id="location-name">LOOE, UK</span>
-                </div>
-
-                <div class="my-4 text-center">
-                    <div id="clock-time" class="text-6xl sm:text-7xl font-bold font-mono-epaper tracking-tighter">00:00</div>
-                    <div id="clock-seconds" class="text-sm font-mono-epaper text-right pr-4 opacity-75">:00 AM</div>
-                </div>
-
-                <div class="mt-6 pt-4 border-t border-dashed border-current text-center">
-                    <div id="clock-day" class="text-3xl font-serif font-bold uppercase tracking-wider">LOADING</div>
-                    <div id="clock-date" class="text-base font-mono-epaper opacity-90 mt-1">--- --, ----</div>
-                </div>
-            </div>
-
-            <div class="pt-4 border-t-2 border-current">
-                <div class="text-xs font-mono-epaper font-bold uppercase mb-2 flex justify-between">
-                    <span>SUNRISE / SUNSET</span>
-                    <i data-lucide="sun" class="w-4 h-4"></i>
-                </div>
-                <div class="flex justify-between items-center text-sm font-mono-epaper">
-                    <div class="flex items-center space-x-1">
-                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-                        <span id="sun-rise">--:--</span>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
-                        <span id="sun-set">--:--</span>
-                    </div>
-                </div>
-                <div class="w-full bg-transparent border border-current h-2.5 mt-2 p-0.5">
-                    <div id="sun-progress" class="bg-current h-full" style="width: 0%;"></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
-            <div>
-                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
-                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">COASTAL & TIDE DATA</span>
-                    <i data-lucide="waves" class="w-4 h-4"></i>
-                </div>
-
-                <div class="flex justify-between items-baseline mb-3">
-                    <div>
-                        <span class="text-xs font-mono-epaper block opacity-75">SEA LEVEL (MSL)</span>
-                        <span class="text-2xl font-bold font-mono-epaper" id="current-sea-level">-- m</span>
-                    </div>
-                    <span class="text-xs font-mono-epaper border border-current px-1.5 py-0.5 font-bold uppercase" id="tide-trend">STABLE</span>
-                </div>
-
-                <div class="relative w-full h-36 my-2 border border-current p-1 bg-opacity-10">
-                    <canvas id="tideChart" class="w-full h-full block"></canvas>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 mt-4 text-xs font-mono-epaper">
-                    <div class="border border-current p-2 text-center">
-                        <span class="block opacity-70">PEAK TIDE (EST)</span>
-                        <span class="font-bold" id="next-high">Calculating...</span>
-                    </div>
-                    <div class="border border-current p-2 text-center">
-                        <span class="block opacity-70">LOW TIDE (EST)</span>
-                        <span class="font-bold" id="next-low">Calculating...</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-xs font-mono-epaper opacity-75 border-t border-dashed border-current pt-2 mt-2 flex justify-between">
-                <span id="water-temp">Water Temp: --°C</span>
-                <span id="wave-height">Swell: -- m</span>
-            </div>
-        </section>
-
-        <section class="epaper-box p-5 flex flex-col justify-between md:col-span-1">
-            <div>
-                <div class="border-b-2 border-current pb-2 mb-3 flex justify-between items-center">
-                    <span class="text-xs font-mono-epaper uppercase tracking-widest font-bold">WEATHER FORECAST</span>
-                    <i data-lucide="cloud-sun" class="w-4 h-4"></i>
-                </div>
-
-                <div class="flex items-center justify-between my-2">
-                    <div>
-                        <div class="text-5xl sm:text-6xl font-bold font-mono-epaper tracking-tight" id="weather-temp">--°<span class="text-2xl">C</span></div>
-                        <div class="text-base font-serif italic mt-1" id="weather-desc">Loading weather...</div>
-                    </div>
-                    <div class="p-3 border-2 border-current">
-                        <i data-lucide="cloud-sun" id="weather-icon" class="w-12 h-12"></i>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 my-4 text-xs font-mono-epaper">
-                    <div class="border-l-2 border-current pl-2">
-                        <span class="opacity-75 block">HUMIDITY</span>
-                        <span class="font-bold text-sm" id="weather-humidity">--%</span>
-                    </div>
-                    <div class="border-l-2 border-current pl-2">
-                        <span class="opacity-75 block">WIND SPEED</span>
-                        <span class="font-bold text-sm" id="weather-wind">-- MPH</span>
-                    </div>
-                    <div class="border-l-2 border-current pl-2">
-                        <span class="opacity-75 block">PRESSURE</span>
-                        <span class="font-bold text-sm" id="weather-pressure">-- hPa</span>
-                    </div>
-                    <div class="border-l-2 border-current pl-2">
-                        <span class="opacity-75 block">COORDINATES</span>
-                        <span class="font-bold text-xs" id="coord-display">50.36°N, 4.45°W</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t-2 border-current pt-3">
-                <div class="grid grid-cols-3 gap-2 text-center font-mono-epaper text-xs" id="forecast-container">
-                    <div class="p-2 border border-current"><span class="block opacity-75">--</span><span class="font-bold">--°</span></div>
-                    <div class="p-2 border border-current"><span class="block opacity-75">--</span><span class="font-bold">--°</span></div>
-                    <div class="p-2 border border-current"><span class="block opacity-75">--</span><span class="font-bold">--°</span></div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="epaper-box p-3 mt-4 flex items-center justify-between text-xs font-mono-epaper">
-        <div class="flex items-center space-x-3 w-full overflow-hidden">
-            <span class="bg-current px-2 py-0.5 text-xs font-bold uppercase text-white tracking-widest shrink-0">STATUS</span>
-            <div class="truncate opacity-90" id="news-headline">
-                Connected to Open-Meteo Weather & Marine API endpoints for Looe coastal region...
-            </div>
-        </div>
-        <div class="shrink-0 pl-4 border-l border-current hidden sm:block">
-            <span>LAST SYNC: <span id="last-sync-time">JUST NOW</span></span>
-        </div>
-    </footer>
-
-    <script>
-        lucide.createIcons();
-
-        const CONFIG = {
-            locationName: "LOOE, UK",
-            latitude: 50.3578,
-            longitude: -4.4542,
-            useMetric: true
-        };
-
-        document.getElementById('location-name').textContent = CONFIG.locationName;
-        document.getElementById('coord-display').textContent = `${CONFIG.latitude}°N, ${Math.abs(CONFIG.longitude)}°W`;
-
-        let marineHourlyData = [];
-
-        async function fetchDashboardData() {
-            try {
-                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,weather_code&daily=sunrise,sunset&timezone=auto`;
-                const weatherRes = await fetch(weatherUrl);
-                const weatherData = await weatherRes.json();
-
-                const tempC = weatherData.current.temperature_2m;
-                const temp = CONFIG.useMetric ? Math.round(tempC) : Math.round((tempC * 9/5) + 32);
-                document.getElementById('weather-temp').innerHTML = `${temp}°<span class="text-2xl">${CONFIG.useMetric ? 'C' : 'F'}</span>`;
-                document.getElementById('weather-humidity').textContent = `${weatherData.current.relative_humidity_2m}%`;
-                document.getElementById('weather-wind').textContent = `${Math.round(weatherData.current.wind_speed_10m)} MPH`;
-                document.getElementById('weather-pressure').textContent = `${Math.round(weatherData.current.pressure_msl)} hPa`;
-                document.getElementById('weather-desc').textContent = getWeatherDescription(weatherData.current.weather_code);
-
-                if (weatherData.daily && weatherData.daily.sunrise && weatherData.daily.sunset) {
-                    document.getElementById('sun-rise').textContent = new Date(weatherData.daily.sunrise[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('sun-set').textContent = new Date(weatherData.daily.sunset[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-
-                const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=sea_level_height_msl,sea_surface_temperature,wave_height&hourly=sea_level_height_msl&timezone=auto`;
-                const marineRes = await fetch(marineUrl);
-                const marineData = await marineRes.json();
-
-                if (marineData.current) {
-                    const currentMsl = marineData.current.sea_level_height_msl ?? 0;
-                    document.getElementById('current-sea-level').textContent = `${currentMsl >= 0 ? '+' : ''}${currentMsl.toFixed(2)} m`;
-
-                    if (marineData.current.sea_surface_temperature != null) {
-                        document.getElementById('water-temp').textContent = `Water Temp: ${marineData.current.sea_surface_temperature.toFixed(1)}°C`;
-                    }
-                    if (marineData.current.wave_height != null) {
-                        document.getElementById('wave-height').textContent = `Swell: ${marineData.current.wave_height.toFixed(1)} m`;
-                    }
-                }
-
-                if (marineData.hourly && marineData.hourly.sea_level_height_msl) {
-                    marineHourlyData = marineData.hourly.sea_level_height_msl;
-                    calculateTideExtremes(marineData.hourly.time, marineHourlyData);
-                }
-
-                drawTideChart(marineHourlyData);
-
-            } catch (err) {
-                console.error('API Fetch Error:', err);
-                document.getElementById('news-headline').textContent = 'Warning: Failed to reach live marine endpoints. Utilizing fallback models.';
-            }
-        }
-
-        function getWeatherDescription(code) {
-            const codes = {
-                0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
-                45: 'Foggy', 51: 'Light Drizzle', 61: 'Rain Showers', 71: 'Snowfall', 95: 'Thunderstorm'
-            };
-            return codes[code] || 'Fair Conditions';
-        }
-
-        function calculateTideExtremes(times, levels) {
-            if (!Array.isArray(times) || !Array.isArray(levels) || !times.length || !levels.length || times.length !== levels.length) {
-                return;
-            }
-
-            const now = Date.now();
-            const currentIndex = times.findIndex(t => new Date(t).getTime() >= now);
-            const startIndex = currentIndex >= 0 ? currentIndex : 0;
-
-            let nextHigh = null;
-            let nextLow = null;
-
-            for (let i = Math.max(1, startIndex); i < levels.length - 1; i++) {
-                const previous = levels[i - 1];
-                const current = levels[i];
-                const next = levels[i + 1];
-                const time = new Date(times[i]).getTime();
-
-                if (!Number.isFinite(time) || time <= now) continue;
-
-                if (nextHigh === null && current >= previous && current > next) {
-                    nextHigh = { time, level: current };
-                }
-
-                if (nextLow === null && current <= previous && current < next) {
-                    nextLow = { time, level: current };
-                }
-
-                if (nextHigh && nextLow) break;
-            }
-
-            const formatTide = ({ time, level }) => {
-                const formattedTime = new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return `${formattedTime} (${level >= 0 ? '+' : ''}${level.toFixed(1)}m)`;
-            };
-
-            document.getElementById('next-high').textContent = nextHigh ? formatTide(nextHigh) : 'No peak';
-            document.getElementById('next-low').textContent = nextLow ? formatTide(nextLow) : 'No low';
-
-            if (startIndex > 0) {
-                const diff = levels[startIndex] - levels[startIndex - 1];
-                document.getElementById('tide-trend').textContent = diff > 0 ? 'RISING' : 'FALLING';
-            }
-        }
-
-        function drawTideChart(levels) {
-            const canvas = document.getElementById('tideChart');
-            if (!canvas) return;
-
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-
-            const ctx = canvas.getContext('2d');
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            const width = rect.width;
-            const height = rect.height;
-            const computedStyle = getComputedStyle(document.body);
-            const fgColor = computedStyle.getPropertyValue('--epaper-fg').trim() || '#111111';
-
-            ctx.clearRect(0, 0, width, height);
-
-            ctx.strokeStyle = fgColor;
-            ctx.lineWidth = 1;
-            ctx.setLineDash([2, 4]);
-            ctx.beginPath();
-            ctx.moveTo(0, height * 0.7);
-            ctx.lineTo(width, height * 0.7);
-            ctx.stroke();
-
-            ctx.setLineDash([]);
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-
-            if (levels && levels.length > 0) {
-                const nowIdx = Math.max(0, Math.min(levels.length - 1, Math.round(levels.length * 0.5)));
-                const sliceStart = Math.max(0, nowIdx - 12);
-                const sliceEnd = Math.min(levels.length, nowIdx + 18);
-                const slice = levels.slice(sliceStart, sliceEnd);
-                const minVal = Math.min(...slice);
-                const maxVal = Math.max(...slice);
-                const range = (maxVal - minVal) || 1;
-
-                slice.forEach((val, i) => {
-                    const x = (i / Math.max(1, slice.length - 1)) * width;
-                    const y = height - 10 - ((val - minVal) / range) * (height - 20);
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-            } else {
-                const amplitude = height * 0.35;
-                const frequency = (Math.PI * 2) / (width * 0.8);
-                const centerY = height * 0.45;
-                for (let x = 0; x <= width; x++) {
-                    const y = centerY + Math.sin(x * frequency - 0.5) * amplitude;
-                    if (x === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-            }
-            ctx.stroke();
-
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.closePath();
-            ctx.fillStyle = fgColor;
-            ctx.globalAlpha = 0.12;
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-
-            const currentX = width * 0.42;
-            ctx.setLineDash([3, 3]);
-            ctx.beginPath();
-            ctx.moveTo(currentX, 0);
-            ctx.lineTo(currentX, height);
-            ctx.stroke();
-
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.arc(currentX, height * 0.5, 4.5, 0, Math.PI * 2);
-            ctx.fillStyle = fgColor;
-            ctx.fill();
-            ctx.stroke();
-        }
-
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-
-            hours = hours % 12 || 12;
-            document.getElementById('clock-time').textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
-            document.getElementById('clock-seconds').textContent = `:${seconds} ${ampm}`;
-
-            const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-            const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-
-            document.getElementById('clock-day').textContent = days[now.getDay()];
-            document.getElementById('clock-date').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-        }
-
-        function triggerRefreshFlash() {
-            document.body.classList.add('refresh-flash');
-            setTimeout(() => {
-                document.body.classList.remove('refresh-flash');
-                fetchDashboardData();
-                document.getElementById('last-sync-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }, 600);
-        }
-
-        document.getElementById('btn-refresh').addEventListener('click', triggerRefreshFlash);
-
-        const btnTheme = document.getElementById('btn-theme');
-        const themeLabel = document.getElementById('theme-label');
-        btnTheme.addEventListener('click', () => {
-            document.body.classList.toggle('dark-epaper');
-            const isDark = document.body.classList.contains('dark-epaper');
-            themeLabel.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
-            triggerRefreshFlash();
-        });
-
-        window.addEventListener('load', () => {
-            updateClock();
-            fetchDashboardData();
-            setInterval(updateClock, 1000);
-            setInterval(fetchDashboardData, 900000);
-        });
-
-        window.addEventListener('resize', () => drawTideChart(marineHourlyData));
-    </script>
+<body>
+<main>
+  <header class="masthead">
+    <div>
+      <h1>Looe</h1>
+      <p class="sub" id="subtitle">Loading today's tides…</p>
+    </div>
+    <span class="stamp">Tides</span>
+  </header>
+
+  <section class="card hero">
+    <div class="panel-head"><span>Now</span><span>UK time</span></div>
+    <div class="hero-body" id="hero" aria-live="polite"></div>
+  </section>
+  <section class="tiles" id="tiles" aria-label="Today's high and low tides"></section>
+
+  <section class="card">
+    <div class="panel-head"><span>Tide height today</span><span>m above chart datum</span></div>
+    <div class="chart-wrap" id="chart"></div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>Half-hourly heights (table view)</summary>
+      <div class="cols"><table id="table"><thead><tr><th>Time</th><th>Height (m)</th></tr></thead><tbody></tbody></table></div>
+    </details>
+  </section>
+
+  <footer>
+    Predictions from <a href="https://easytide.admiralty.co.uk/?PortID=0011" target="_blank" rel="noopener">ADMIRALTY EasyTide</a> (UKHO).
+    Not for navigation.
+  </footer>
+</main>
+
+<script>
+const STATION = "0011";            // Looe
+// On localhost use server.py; everywhere else (GitHub Pages) use the Cloudflare Worker proxy.
+// Add ?worker to the URL to force the Worker locally (e.g. http://localhost:8000/?worker).
+const useLocal = ["localhost", "127.0.0.1"].includes(location.hostname)
+  && !new URLSearchParams(location.search).has("worker");
+const API = useLocal
+  ? "/api/tides"
+  : "https://falling-moon-a7b9.nigel-charlton.workers.dev/api/tides";
+const TZ = "Europe/London";
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// ---------- time helpers (everything is shown in UK local time) ----------
+const partsFmt = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+function london(date) {
+  const p = Object.fromEntries(partsFmt.formatToParts(date).map(x => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, mins: +p.hour * 60 + +p.minute };
+}
+const hhmm = m => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+function duration(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h ? `${h} h ${m} min` : `${m} min`;
+}
+
+function el(tag, attrs = {}, parent, text) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (text != null) node.textContent = text;
+  if (parent) parent.appendChild(node);
+  return node;
+}
+function html(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+}
+function arrowIcon(up) {
+  const svg = el("svg", { width: 12, height: 12, viewBox: "0 0 12 12", "aria-hidden": "true" });
+  el("path", { d: up ? "M6 1 L11 10 L1 10 Z" : "M6 11 L11 2 L1 2 Z", fill: "var(--series-1)" }, svg);
+  return svg;
+}
+
+// ---------- data ----------
+let state = null;
+
+async function load() {
+  const res = await fetch(`${API}?station=${STATION}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+
+  const now = london(new Date());
+  const today = now.date;
+
+  // Half-hourly heights come as UTC ("...Z"); convert to UK local.
+  const all = data.tidalHeightOccurrenceList.map(o => {
+    const l = london(new Date(o.dateTime));
+    return { date: l.date, mins: l.mins, h: o.height };
+  });
+  const points = all.filter(p => p.date === today);
+  const midnight = all.find(p => p.date > today && p.mins === 0);
+  if (midnight) points.push({ ...midnight, mins: 1440 });
+
+  // High/low events come as UK local time without an offset.
+  const events = data.tidalEventList.map(e => ({
+    date: e.dateTime.slice(0, 10),
+    mins: +e.dateTime.slice(11, 13) * 60 + +e.dateTime.slice(14, 16),
+    high: e.eventType === 0,
+    h: e.height,
+  }));
+  const todayEvents = events.filter(e => e.date === today);
+  const nowKey = `${today} ${hhmm(now.mins)}`;
+  const next = events.find(e => `${e.date} ${hhmm(e.mins)}` > nowKey);
+
+  state = { now, today, points, todayEvents, next };
+}
+
+function heightAt(points, mins) {
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    if (mins >= a.mins && mins <= b.mins) {
+      return a.h + (b.h - a.h) * (mins - a.mins) / (b.mins - a.mins);
+    }
+  }
+  return null;
+}
+
+// ---------- header, hero, tiles, table ----------
+function renderText() {
+  const { now, today, points, todayEvents, next } = state;
+  const dateLabel = new Date(`${today}T12:00:00Z`).toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+  });
+  document.getElementById("subtitle").textContent = `Tides for ${dateLabel}`;
+
+  const hero = document.getElementById("hero");
+  hero.replaceChildren();
+  const hNow = heightAt(points, now.mins);
+  if (hNow != null) {
+    const block = html("div");
+    block.append(html("div", "label", "Height now"), html("div", "big", `${hNow.toFixed(2)} m`));
+    hero.append(block);
+  }
+  if (next) {
+    const nextMins = (next.date === today ? 0 : 1440) + next.mins - now.mins;
+    const block = html("div");
+    block.append(
+      html("div", "label", next.high ? "Rising · next high" : "Falling · next low"),
+      html("div", "big", hhmm(next.mins)),
+      html("div", "detail", `${next.h.toFixed(2)} m · in ${duration(nextMins)}${next.date === today ? "" : " (tomorrow)"}`),
+    );
+    hero.append(block);
+  }
+
+  const tiles = document.getElementById("tiles");
+  tiles.replaceChildren();
+  for (const e of todayEvents) {
+    const past = e.mins <= now.mins;
+    const tile = html("div", `tile${past ? " past" : ""}`);
+    const kind = html("div", "kind");
+    kind.append(arrowIcon(e.high), document.createTextNode(e.high ? "High tide" : "Low tide"));
+    if (past) kind.append(html("span", "tag", "Passed"));
+    tile.append(kind, html("div", "time", hhmm(e.mins)), html("div", "height", `${e.h.toFixed(2)} m`));
+    tiles.append(tile);
+  }
+
+  const tbody = document.querySelector("#table tbody");
+  tbody.replaceChildren();
+  for (const p of points) {
+    const tr = document.createElement("tr");
+    tr.append(html("td", null, p.mins === 1440 ? "24:00" : hhmm(p.mins)), html("td", null, p.h.toFixed(2)));
+    tbody.append(tr);
+  }
+}
+
+// ---------- chart ----------
+function renderChart() {
+  const { now, points, todayEvents } = state;
+  const wrap = document.getElementById("chart");
+  wrap.replaceChildren();
+  if (points.length < 2) {
+    wrap.append(html("p", "error", "No height data available for today."));
+    return;
+  }
+
+  const W = Math.max(320, wrap.clientWidth), H = 300;
+  const m = { l: 36, r: 12, t: 30, b: 28 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const maxH = Math.max(...points.map(p => p.h), ...todayEvents.map(e => e.h));
+  const yMax = Math.ceil(maxH + 0.4);
+  const x = mins => m.l + (mins / 1440) * iw;
+  const y = h => m.t + ih - (Math.max(0, h) / yMax) * ih;
+
+  const svg = el("svg", {
+    viewBox: `0 0 ${W} ${H}`, width: W, height: H, tabindex: 0, role: "img",
+    "aria-label": "Tide height through today. Use left and right arrow keys to read values.",
+  }, wrap);
+
+  // grid + y axis
+  for (let v = 0; v <= yMax; v++) {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1 }, svg);
+    el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", class: "tick" }, svg, `${v} m`);
+  }
+  // x axis
+  const step = iw < 520 ? 360 : 180;
+  for (let t = 0; t <= 1440; t += step) {
+    el("text", { x: x(t), y: H - 8, "text-anchor": t === 0 ? "start" : t === 1440 ? "end" : "middle", class: "tick" }, svg, t === 1440 ? "24:00" : hhmm(t));
+  }
+
+  // area + line
+  const linePts = points.map(p => `${x(p.mins).toFixed(1)},${y(p.h).toFixed(1)}`);
+  el("path", {
+    d: `M${x(points[0].mins)},${y(0)} L${linePts.join(" L")} L${x(points.at(-1).mins)},${y(0)} Z`,
+    fill: "var(--series-1-fill)",
+  }, svg);
+  el("path", {
+    d: `M${linePts.join(" L")}`, fill: "none", stroke: "var(--series-1)",
+    "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round",
+  }, svg);
+
+  // now line
+  const hNow = heightAt(points, now.mins);
+  if (hNow != null) {
+    el("line", { x1: x(now.mins), x2: x(now.mins), y1: m.t - 8, y2: y(0), stroke: "var(--now)", "stroke-width": 1, "stroke-dasharray": "3 3" }, svg);
+    el("text", { x: x(now.mins), y: m.t - 14, "text-anchor": "middle", class: "now-label" }, svg, `Now ${hhmm(now.mins)}`);
+    el("circle", { cx: x(now.mins), cy: y(hNow), r: 5, fill: "var(--surface-1)", stroke: "var(--series-1)", "stroke-width": 2 }, svg);
+  }
+
+  // high / low markers with direct labels
+  for (const e of todayEvents) {
+    const cx = x(e.mins), cy = y(e.h);
+    el("circle", { cx, cy, r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2 }, svg);
+    const anchor = cx < m.l + 50 ? "start" : cx > W - m.r - 50 ? "end" : "middle";
+    el("text", { x: cx, y: e.high ? cy - 12 : cy + 20, "text-anchor": anchor, class: "mark-label" },
+      svg, `${hhmm(e.mins)} · ${e.h.toFixed(2)} m`);
+  }
+
+  // crosshair + tooltip
+  const cross = el("line", { y1: m.t, y2: y(0), stroke: "var(--text-muted)", "stroke-width": 1, visibility: "hidden" }, svg);
+  const dot = el("circle", { r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2, visibility: "hidden" }, svg);
+  const tip = html("div", "tooltip");
+  const tipVal = html("strong"), tipTime = html("span");
+  tip.append(tipVal, tipTime);
+  wrap.append(tip);
+
+  let idx = -1;
+  function show(i) {
+    idx = Math.max(0, Math.min(points.length - 1, i));
+    const p = points[idx], px = x(p.mins), py = y(p.h);
+    cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", px); dot.setAttribute("cy", py); dot.setAttribute("visibility", "visible");
+    tipVal.textContent = `${p.h.toFixed(2)} m`;
+    tipTime.textContent = p.mins === 1440 ? "24:00" : hhmm(p.mins);
+    tip.style.display = "block";
+    const scale = wrap.clientWidth / W;
+    const left = px * scale + 12, tw = tip.offsetWidth;
+    tip.style.left = `${left + tw > wrap.clientWidth ? px * scale - tw - 12 : left}px`;
+    tip.style.top = `${Math.max(0, py * scale - 50)}px`;
+  }
+  function hide() {
+    cross.setAttribute("visibility", "hidden");
+    dot.setAttribute("visibility", "hidden");
+    tip.style.display = "none";
+  }
+
+  const hit = el("rect", { x: m.l, y: 0, width: iw, height: H, fill: "transparent" }, svg);
+  hit.addEventListener("pointermove", ev => {
+    const r = svg.getBoundingClientRect();
+    const mins = ((ev.clientX - r.left) * (W / r.width) - m.l) / iw * 1440;
+    let best = 0;
+    points.forEach((p, i) => { if (Math.abs(p.mins - mins) < Math.abs(points[best].mins - mins)) best = i; });
+    show(best);
+  });
+  hit.addEventListener("pointerleave", hide);
+  svg.addEventListener("keydown", ev => {
+    if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      const start = idx < 0 ? points.findIndex(p => p.mins >= now.mins) : idx;
+      show(start + (idx < 0 ? 0 : ev.key === "ArrowRight" ? 1 : -1));
+    } else if (ev.key === "Escape") hide();
+  });
+  svg.addEventListener("blur", hide);
+}
+
+// ---------- boot ----------
+async function refresh() {
+  try {
+    await load();
+    renderText();
+    renderChart();
+  } catch (err) {
+    document.getElementById("subtitle").textContent = `Couldn't load tide data: ${err.message}`;
+  }
+}
+refresh();
+setInterval(refresh, 5 * 60 * 1000);   // keep "now" current; the server caches upstream for 30 min
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => state && renderChart(), 150);
+});
+</script>
 </body>
 </html>
